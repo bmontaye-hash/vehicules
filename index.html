@@ -13,13 +13,13 @@
   <!-- ⚙️  CONFIGURATION — modifiez uniquement cette section -->
   <script>
     // 1. Remplacez par l'URL de votre déploiement Google Apps Script
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz7WNR_S6Wjb4XRNzfC_u8KC3bVzMdQ6TnrdEn_R7bN_6rlJqMJ_gwb1qbknXhX4Lmd/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyPQo8uD67bhybkx2oephXbIWbZwxx2lj-aNefI5DYuVGZcegPmgU2hkicynhqz8R3K/exec";
 
     // 2. Personnalisez la liste de vos véhicules (immatriculation – modèle)
     const VEHICULES = [
       "Peugeot 208",
       "Peugeot RIFTER",
-      "FORD Transit"
+      "FORD Transit",
     ];
   </script>
 
@@ -145,6 +145,24 @@
       box-shadow: 0 0 0 3px rgba(59,106,234,0.15);
     }
     .field textarea { resize: none; height: 72px; }
+
+    /* ── Toggle aller / retour ── */
+    .direction-group { display: flex; gap: 8px; }
+    .direction-btn {
+      flex: 1; padding: 10px 6px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface2);
+      color: var(--text2);
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all 0.15s;
+    }
+    .direction-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .direction-btn.active-aller  { background: #e8f5e9; border-color: #43a047; color: #2e7d32; }
+    .direction-btn.active-retour { background: #fff3e0; border-color: #fb8c00; color: #e65100; }
 
     /* ── Toggle type trajet ── */
     .toggle-group { display: flex; gap: 8px; }
@@ -293,6 +311,27 @@
   </div>
 </div>
 
+<!-- Sens du trajet -->
+<div class="card">
+  <div class="card-title">
+    <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    Sens du trajet
+  </div>
+  <div class="field">
+    <label>Direction <span class="req">*</span></label>
+    <div class="direction-group">
+      <button class="direction-btn active-aller" id="btn-aller" onclick="setDirection('aller')">
+        <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
+        Aller
+      </button>
+      <button class="direction-btn" id="btn-retour" onclick="setDirection('retour')">
+        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="11 18 5 12 11 6"/></svg>
+        Retour
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Trajet -->
 <div class="card">
   <div class="card-title">
@@ -367,6 +406,7 @@
   // ── Initialisation ──────────────────────────────────────────────
   let typeTrajet   = 'pro';
   let etatVehicule = 'bon';
+  let direction    = 'aller';
 
   // Date dans l'en-tête
   document.getElementById('date-now').textContent =
@@ -384,6 +424,12 @@
   });
 
   // ── Interactions ────────────────────────────────────────────────
+  function setDirection(d) {
+    direction = d;
+    document.getElementById('btn-aller').className  = 'direction-btn' + (d === 'aller'  ? ' active-aller'  : '');
+    document.getElementById('btn-retour').className = 'direction-btn' + (d === 'retour' ? ' active-retour' : '');
+  }
+
   function setType(t) {
     typeTrajet = t;
     document.getElementById('btn-pro').className   = 'toggle-btn' + (t === 'pro'   ? ' active-pro'   : '');
@@ -444,6 +490,7 @@
       prenom,                                       // Prénom
       nom,                                          // Nom
       vehicule,                                     // Véhicule
+      direction === 'aller' ? 'Aller' : 'Retour',  // Sens du trajet
       destination,                                  // Destination
       typeTrajet === 'pro' ? 'Professionnel' : 'Personnel',  // Type
       km,                                           // Kilométrage
@@ -477,6 +524,7 @@
       updateJauge(75);
       setType('pro');
       setEtat('bon');
+      setDirection('aller');
     })
     .catch(err => {
       document.getElementById('error-msg').textContent =
